@@ -15,7 +15,8 @@ negative_keywords = [
 
 def find_stocks_to_buy():
     positive_stocks = []
-    for i in r.get_top_100():
+
+    for i in r.get_all_stocks_from_market_tag('24-hour-market'):
         symbol = i['symbol']
         for story in r.get_news(symbol):
             net_score = 0
@@ -26,7 +27,7 @@ def find_stocks_to_buy():
                 if word in story['title']:
                     net_score -= 1
             if net_score > 0:
-                print(symbol, story['title'], net_score)
+                # print(symbol, story['title'], net_score)
                 positive_stocks.append((symbol, net_score))
     company_counts = defaultdict(int)
 

@@ -1,3 +1,6 @@
+import robin_stocks.robinhood as r
+
+
 class Stock:
     def __init__(self, symbol, bought_price, amount):
         """
@@ -24,13 +27,12 @@ class Stock:
         """
         self.bought_price = new_price
 
-    def value(self, current_price):
+    def value(self):
         """
         Calculate the total value of this stock based on the current price.
-        :param current_price: float, the current market price of the stock
         :return: float, the total value of the stock held in portfolio
         """
-        return self.amount * current_price
+        return self.amount * round(float(r.get_latest_price(self.symbol)[0]), 2)
 
     def __repr__(self):
         return f"Stock(symbol={self.symbol}, bought_price={self.bought_price}, amount={self.amount})"
@@ -42,6 +44,7 @@ class Portfolio:
         Initialize the portfolio with available cash.
         :param cash: float, the amount of cash available to buy stocks
         """
+        self.profit = 0.0
         self.cash = cash
         self.stocks = {}  # Dictionary to hold stocks by their symbol (key)
 
@@ -51,33 +54,41 @@ class Portfolio:
         :param stock: Stock object, the stock to buy
         :param amount: int, the number of shares to buy
         """
-        total_cost = stock.bought_price * amount
+        current_price = round(float(r.get_latest_price(stock)[0]), 2)
+        total_cost = current_price * amount
         if total_cost <= self.cash:
-            if stock.symbol in self.stocks:
-                self.stocks[stock.symbol].amount += amount
+            if stock in self.stocks:
+                self.stocks[stock].amount += amount
             else:
-                self.stocks[stock.symbol] = Stock(stock.symbol, stock.bought_price, amount)
-            self.cash -= total_cost
+                self.stocks[stock] = Stock(stock, current_price, amount)
+            self.cash -= round(total_cost, 2)
+            print(f"Bought {amount} shares of {stock} for {total_cost} at {current_price} a share.")
         else:
-            print(f"Not enough cash to buy {amount} of {stock.symbol}")
+            print(f"Not enough cash to buy {amount} of {stock}. Current balance is {self.cash}, cost is {total_cost}")
 
-    def sell_stock(self, symbol, amount, current_price):
+    def sell_stock(self, symbol, amount):
         """
         Sell stock and update the portfolio.
         :param symbol: str, the symbol of the stock to sell
         :param amount: int, the number of shares to sell
-        :param current_price: float, the current market price of the stock
         """
         if symbol in self.stocks and self.stocks[symbol].amount >= amount:
             stock = self.stocks[symbol]
             stock.amount -= amount
-            self.cash += amount * current_price
+            current_price = round(float(r.get_latest_price(symbol)[0]), 2)
+            profit = (current_price * amount) -(round(stock.bought_price * amount,2))
+            if profit <= 0:
+                print(f"Sold {symbol} for a loss of {profit}")
+            else:
+                print(f"Sold {symbol} for a gain of {profit}")
+            self.cash += round(amount * current_price, 2)
+            self.profit += profit
             if stock.amount == 0:
                 del self.stocks[symbol]  # Remove the stock if no shares are left
         else:
             print(f"Not enough {symbol} shares to sell.")
 
-    def portfolio_value(self, current_prices):
+    def portfolio_value(self):
         """
         Calculate the total value of the portfolio (cash + value of held stocks).
         :param current_prices: dict, current market prices of all held stocks
@@ -85,8 +96,8 @@ class Portfolio:
         """
         total_value = self.cash
         for symbol, stock in self.stocks.items():
-            total_value += stock.value(current_prices.get(symbol, 0))
+            total_value += stock.value()
         return total_value
 
     def __repr__(self):
-        return f"Portfolio(cash={self.cash}, stocks={self.stocks})"
+        return f"Portfolio(profit={self.profit}, cash={self.cash}, stocks={self.stocks})"
