@@ -3,7 +3,7 @@ import robin_stocks.robinhood as r
 import pprint as p
 import threading
 from dotenv import load_dotenv
-from algorithms import find_stocks_to_buy
+from algorithms import find_stocks_to_buy, find_penny_stocks_to_buy
 from portfolio import Portfolio, Stock
 
 load_dotenv()
@@ -17,7 +17,7 @@ p.pprint(account_info)
 main_portfolio = Portfolio(cash=round(float(account_info['portfolio_cash']),2))
 
 def buy(portfolio, symbol, amount):
-    if portfolio.cash > amount:
+    if portfolio.cash > amount * float(r.get_latest_price(symbol)[0]):
         portfolio.buy_stock(symbol, amount)
         r.order_buy_fractional_by_price(symbol=symbol, amountInDollars=amount)
         print(portfolio)
@@ -25,14 +25,14 @@ def buy(portfolio, symbol, amount):
 
 def scan_and_buy(portfolio):
     while True:
-        stocks = find_stocks_to_buy()
+        stocks = find_penny_stocks_to_buy()
         # print(f"Found {len(stocks)} stocks.")
+        stocks
         for stock in stocks:
             # print(f"Scanning {stock[0]}")
-            if stock[1] > 0:
-                fractionalamount = (2.0 / round(float(r.get_latest_price(stock[0])[0]), 2))
-                if fractionalamount >= 1:
-                    buy(portfolio, stock[0], fractionalamount)
+            # if stock[1] > -1:
+            fractionalamount = (2.0 / round(float(r.get_latest_price(stock[0])[0]), 2))
+            buy(portfolio, stock[0], fractionalamount)
 
 
 
@@ -44,13 +44,15 @@ def scan_and_sell(portfolio):
 
             cur_price = round(float(r.get_latest_price(stock)[0]), 2)
             bought_price = portfolio.stocks[stock].bought_price
+            if cur_price != bought_price:
+                print(f"Current price of {stock}: {cur_price}, bought price: {bought_price}")
             amount = portfolio.stocks[stock].amount
             if (bought_price * .98) > cur_price:
                 print(f"Stop loss. Selling at 98% Bought at {bought_price}, selling at {cur_price}")
                 sell(portfolio, stock, amount)
                 print(portfolio)
 
-            elif (cur_price > bought_price * 1.01) and (cur_price - bought_price >= 0.01):
+            elif (cur_price > bought_price * 1.005) and (cur_price - bought_price >= 0.01):
                 sell(portfolio, stock, amount)
                 print(portfolio)
 
