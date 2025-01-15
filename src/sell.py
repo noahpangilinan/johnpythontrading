@@ -18,7 +18,7 @@ for position in positions:
     if quantity > 0:  # Only sell if you own some shares
         print(f"Selling {quantity} shares of {symbol}")
         # Sell all shares (specifying the order type and price; market order will be used here)
-        r.orders.place_market_sell_order(symbol, quantity)
+        r.order_sell_fractional_by_quantity(symbol, quantity)
         print(f"Successfully sold {quantity} shares of {symbol}")
     else:
         print(f"No shares to sell for {symbol}")
