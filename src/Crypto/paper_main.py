@@ -1,4 +1,6 @@
 import os
+import time
+
 import robin_stocks.robinhood as r
 import pprint as p
 import threading
@@ -17,8 +19,8 @@ p.pprint(account_info)
 main_portfolio = Portfolio(cash=round(float(account_info['portfolio_cash']),2))
 
 def buy(portfolio, symbol, amount):
-    if portfolio.cash > amount * float(r.get_crypto_quote(symbol)[0]):
-        portfolio.buy_stock(symbol, amount)
+    if portfolio.cash > amount * round(float(r.get_crypto_quote(symbol)["ask_price"]), 2):
+        portfolio.buy_crypto(symbol, amount)
         # r.order_buy_fractional_by_price(symbol=symbol, amountInDollars=amount)
         print(portfolio)
 
@@ -27,39 +29,51 @@ def scan_and_buy(portfolio):
     while True:
         crypto = find_crypto_to_buy()
         # print(f"Found {len(crypto)} crypto.")
-        for stock in crypto:
-            # print(f"Scanning {stock[0]}")
-            # if stock[1] > -1:
-            print(sto)
-            fractionalamount = (2.0 / round(float(r.get_crypto_quote(stock[0])["bid_price"]), 2))
-            buy(portfolio, stock[0], fractionalamount)
+        for cryptos in crypto:
+            time.sleep(1)
+
+            # print(f"Scanning {crypto[0]}")
+            # if crypto[1] > -1:
+            if not None:
+                if not round(float(r.get_crypto_quote(cryptos[0])["ask_price"])) == 0:
+                    fractionalamount = (5.0 / round(float(r.get_crypto_quote(cryptos[0])["ask_price"]), 2))
+                    buy(portfolio, cryptos[0], fractionalamount)
 
 
 
 
 def scan_and_sell(portfolio):
     while True:
-        for stock in list(portfolio.crypto.keys()):
-            # print(f"Scanning {stock}")
+        for crypto in list(portfolio.crypto.keys()):
+            time.sleep(1)
 
-            cur_price = round(float(r.get_crypto_quote(stock)[0]), 2)
-            bought_price = portfolio.crypto[stock].bought_price
-            if cur_price != bought_price:
-                print(f"Current price of {stock}: {cur_price}, bought price: {bought_price}")
-            amount = portfolio.crypto[stock].amount
+            # print(f"Scanning {crypto}")
+
+            cur_price = round(float(r.get_crypto_quote(crypto)["ask_price"]), 2)
+            bought_price = portfolio.crypto[crypto].bought_price
+            highest_price = portfolio.crypto[crypto].highest_price
+            # if cur_price != bought_price:
+            #     print(f"Current price of {crypto}: {cur_price}, bought price: {bought_price}")
+            amount = portfolio.crypto[crypto].amount
+            print(
+                f"Current price of {crypto} is {cur_price}, bought for {bought_price}. Total profit is {amount * (cur_price - bought_price) - max(0.02, amount * bought_price * 0.0126)} ")
+
             if (bought_price * .98) > cur_price:
                 print(f"Stop loss. Selling at 98% Bought at {bought_price}, selling at {cur_price}")
-                sell(portfolio, stock, amount)
+                sell(portfolio, crypto, amount)
                 print(portfolio)
 
-            elif (cur_price > bought_price * 1.005) and (cur_price - bought_price >= 0.01):
-                sell(portfolio, stock, amount)
-                print(portfolio)
+            elif cur_price > bought_price:
+                if cur_price > highest_price:
+                    portfolio.crypto[crypto].update_highest_price(cur_price)
+                elif cur_price < (highest_price * 0.99) and (cur_price - bought_price > max(.02,  bought_price * 1.0126)) :
+                    sell(portfolio, crypto, amount)
+                    print(portfolio)
 
 def sell(portfolio, symbol, amount):
     if amount < 0:
         amount = portfolio.crypto[symbol].value()
-    portfolio.sell_stock(symbol, amount)
+    portfolio.sell_crypto(symbol, amount)
     # r.order_sell_fractional_by_price(symbol=symbol, amountInDollars=amount)
 
 

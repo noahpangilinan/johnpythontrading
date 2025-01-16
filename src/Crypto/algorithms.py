@@ -28,6 +28,5 @@ def find_crypto_to_buy():
     # Convert the dictionary back to a list of tuples
     positive_crypto = sorted([(company, total_count) for company, total_count in company_counts.items()], key=lambda x: x[1],
                     reverse=True)
-
     return positive_crypto
 
