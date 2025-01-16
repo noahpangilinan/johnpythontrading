@@ -56,7 +56,7 @@ def scan_and_sell(portfolio):
             #     print(f"Current price of {crypto}: {cur_price}, bought price: {bought_price}")
             amount = portfolio.crypto[crypto].amount
             print(
-                f"Current price of {crypto} is {cur_price}, bought for {bought_price}. Total profit is {amount * (cur_price - bought_price) - max(0.02, amount * bought_price * 0.0126)} ")
+                f"Current price of {crypto} is {cur_price}, bought for {bought_price}. Total profit is {amount * (cur_price - bought_price) - max(0.02, amount * bought_price * 0.0126)}. Highest price is {highest_price} ")
 
             if (bought_price * .98) > cur_price:
                 print(f"Stop loss. Selling at 98% Bought at {bought_price}, selling at {cur_price}")
@@ -66,7 +66,7 @@ def scan_and_sell(portfolio):
             elif cur_price > bought_price:
                 if cur_price > highest_price:
                     portfolio.crypto[crypto].update_highest_price(cur_price)
-                elif cur_price < (highest_price * 0.99) and (cur_price - bought_price > max(.02,  bought_price * 1.0126)) :
+                elif cur_price < (highest_price * 0.99) and (amount * (cur_price - bought_price) - (max(0.01, amount * bought_price * 0.0063) + max(0.01, amount * cur_price * 0.0063)) > 0) :
                     sell(portfolio, crypto, amount)
                     print(portfolio)
 
