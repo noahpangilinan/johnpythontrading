@@ -44,14 +44,14 @@ class Crypto:
 
 
 class Portfolio:
-    def __init__(self, cash):
+    def __init__(self, cash, crypto = None):
         """
         Initialize the portfolio with available cash.
         :param cash: float, the amount of cash available to buy crypto
         """
         self.profit = 0.0
         self.cash = cash
-        self.crypto = {}  # Dictionary to hold crypto by their symbol (key)
+        self.crypto = crypto if crypto is not None else {}  # Dictionary to hold crypto by their symbol (key)
 
     def buy_crypto(self, crypto, amount):
         """
@@ -103,6 +103,15 @@ class Portfolio:
         for symbol, crypto in self.crypto.items():
             total_value += crypto.value()
         return total_value
+
+    def add_crypto(self, crypto, amount, bought_price):
+        if crypto in self.crypto:
+            self.crypto[crypto].amount += amount
+        else:
+            self.crypto[crypto] = Crypto(crypto, bought_price, amount)
+
+    def set_cash(self, cash):
+        self.cash = cash
 
     def __repr__(self):
         return f"Portfolio(profit={self.profit}, cash={self.cash}, crypto={self.crypto})"
