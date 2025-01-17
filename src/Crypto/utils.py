@@ -60,7 +60,7 @@ def get_price_at_time(symbol, timestamp):
         "LINK": "LINKUSD",  # Chainlink to USD
         "COMP": "COMPUSD",  # Compound to USD
         "WIF": "WIFUSD",  # Wifecoin to USD (check for availability on Kraken)
-        "ETC": "ETCUSD",  # Ethereum Classic to USD
+        "ETC": "XETCZUSD",  # Ethereum Classic to USD
         "PEPE": "PEPEUSD",  # Pepe Coin to USD (check for availability on Kraken)
         "SOL": "SOLUSD",  # Solana to USD
         "XLM": "XLMUSD",  # Stellar Lumens to USD
@@ -88,6 +88,7 @@ def get_price_at_time(symbol, timestamp):
         # Check if the request was successful
         if response.status_code == 200:
             data = response.json()
+            # print(data['result'].keys())
             if "result" in data:
                 return data["result"][pair]  # Return the OHLC data
             else:

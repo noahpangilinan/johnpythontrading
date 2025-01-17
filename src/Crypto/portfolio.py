@@ -33,7 +33,7 @@ class Crypto:
         Calculate the total value of this crypto based on the current price.
         :return: float, the total value of the crypto held in portfolio
         """
-        return self.amount * round(float(r.get_crypto_quote(self.symbol)[0]), 2)
+        return self.amount * round(float(r.get_crypto_quote(self.symbol)["ask_price"]), 2)
 
     def update_highest_price(self, price):
         self.highest_price = price
